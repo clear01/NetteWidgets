@@ -1,0 +1,26 @@
+{
+	"name": "clear01/nette-widgets",
+	"description": "Nette widgets extension. Based on clear01/widgets.",
+	"minimum-stability": "stable",
+	"license": "proprietary",
+	"keyword": ["widget", "gadget", "nette", "modular"],
+	"authors": [
+		{
+			"name": "Clear01 Development",
+			"email": "development@clear01.com"
+		}
+	],
+    "autoload": {
+        "psr-0": {
+            "Clear01\\Widgets\\Nette\\": "src/"
+        }
+	},
+	"require-dev": {
+		"nette/tester": "^1.7"
+	},
+	"require": {
+		"clear01/widgets-core": "^0.1",
+		"nette/nette": "^2.1"
+	},
+	"version": "0.1"
+}
