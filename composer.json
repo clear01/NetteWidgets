@@ -21,6 +21,5 @@
 	"require": {
 		"clear01/widgets-core": "^0.1",
 		"nette/nette": "^2.1"
-	},
-	"version": "0.1"
+	}
 }
