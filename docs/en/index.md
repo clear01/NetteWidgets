@@ -45,16 +45,21 @@ widgets:
 
             # case 1.1
             - \App\Widgets\Clock
-
+ 
             # case 1.2
             anotherClock: \App\Widgets\Clock('blue')
-
+ 
+            # case 1.3
+            timezoneClock:
+                class: \App\Widgets\TimeZoneClock('Europe/Prague')
+                unique: false
+ 
             # case 2.1
             - \App\Widgets\IUpcomingEventsComponentFactory
-
+ 
             # case 3.1
             - \Clear01\Widgets\Nette\TemplateWidgetDeclarationFactory(%appDir%/WidgetTemplates/Greeting.latte)
-
+ 
             # case 3.2
             - \App\Widgets\EmergencyButtonsFactory
 
@@ -69,7 +74,6 @@ services:
 #### <a name="DirectComponentDefinition"></a>Direct component definition (cases 1.*)
 This is the simplest way to add your widgets.
 Just specify the widget component as you would do in the 'service' section.
-These widgets will have the **unique** property (cannot be added multiple times in a single dashboard).
 
 You can also specify the widget type ID (case 1.2). If no ID is specified (case 1.1), it will be generated
 automatically using **only the widget class name**. That's the reason why **widget type ids _must_ be specified when multiple widgets of same class are present**.
@@ -77,6 +81,10 @@ Otherwise, ```\RuntimeException``` saying that widget with that typeId was alrea
 
 In case of generic components, consider using the *Widget declaration factory* approach instead (see case 3.1).
 For example, two clock components are ok to be registered this way, but it would be really boring to specify ids for all DummyTemplateComponent($templateFile) widgets (consider 20+), wouldn't be?
+
+If you wish to let user to add multiple instances of the widget, it's necessary to use a slightly more verbose syntax (see case 1.3).
+In this example, ```\App\Widgets\TimeZoneClock``` represents a [Rich widget](#RichWidgets), that can be configured to display time using particular time zone.
+End user can add multiple instances of this widget, each for different time zone.
 
 #### <a name="ComponentFactory"></a>Component factory (case 2.1)
 Quite similar to [Direct component definition](#DirectComponentDefinition) approach. Complex instance creation process is usually maintained by some sort of factory classes. Let them implement ```\Clear01\Widgets\Nette\IRichWidgetComponent``` and use them as shown above.
