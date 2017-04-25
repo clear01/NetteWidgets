@@ -116,10 +116,18 @@ class WidgetsExtension extends CompilerExtension {
 		foreach($widgets as $namespace => $widgetList) {
 			foreach($widgetList as $widgetTypeId => $widgetDefinition) {
 
-				list($statementRecord) = \Nette\DI\Compiler::filterArguments(array(
-					is_string($widgetDefinition) ? new \Nette\DI\Statement($widgetDefinition) : $widgetDefinition
-				));
+				if(!is_array($widgetDefinition)) {
+					$widgetDefinition = [
+						'unique'	=>	true,
+						'class'		=>	$widgetDefinition
+					];
+				}
 
+				$widgetFactoryDefinition = $widgetDefinition['class'];
+
+				list($statementRecord) = \Nette\DI\Compiler::filterArguments(array(
+					is_string($widgetFactoryDefinition) ? new \Nette\DI\Statement($widgetFactoryDefinition) : $widgetFactoryDefinition
+				));
 
 				if(class_exists($statementRecord->entity) && in_array(IWidgetDeclarationFactory::class, class_implements($statementRecord->entity))) {
 					// Declaration factory was given directly
@@ -135,19 +143,20 @@ class WidgetsExtension extends CompilerExtension {
 
 					// for arrays (config example: - \Comp1 \n - \Comp2)
 					if (!is_string($widgetTypeId)) {
-						$widgetTypeId = md5(\Nette\Utils\Json::encode($widgetDefinition));
+						$widgetTypeId = md5(\Nette\Utils\Json::encode($widgetFactoryDefinition));
 					}
 
 					// create definition of the services with unique id
 					$serviceDef = $builder->addDefinition($widgetServiceId = $this->prefix('widgetService.' . $namespace . '.' . $widgetTypeId));
 					$serviceDef->factory = $statementRecord;
-					if (class_exists($serviceDef->factory->entity)) {
-						$serviceDef->class = $serviceDef->factory->entity;
-					} elseif (interface_exists($serviceDef->factory->entity) && in_array(IWidgetComponentFactory::class, class_implements($serviceDef->factory->entity))) {
-						if (count($serviceDef->factory->arguments)) {
+					if (class_exists($statementRecord->entity)) {
+						$serviceDef->setImplement(IWidgetComponentFactory::class);
+						$serviceDef->setClass($statementRecord->entity);
+					} elseif (interface_exists($statementRecord->entity) && in_array(IWidgetComponentFactory::class, class_implements($statementRecord->entity))) {
+						if (count($statementRecord->arguments)) {
 							throw new \Nette\Utils\AssertionException('Interface extending ' . IWidgetComponentFactory::class . ' cannot have any arguments! The widget should be creatable with no runtime dependencies. Use custom factory implementation if needed.');
 						}
-						$serviceDef->setImplement($serviceDef->factory->entity);
+						$serviceDef->setImplement($statementRecord->entity);
 						$serviceDef->setClass(null);
 						$serviceDef->setFactory(null);
 					}
@@ -157,7 +166,7 @@ class WidgetsExtension extends CompilerExtension {
 
 					// create widget factory for the service
 					$factoryDef = $builder->addDefinition($this->prefix('widgetFactoryService.' . $namespace . '.' . $widgetTypeId));
-					$factoryDef->setClass(ContainerWidgetDeclarationFactory::class, [$widgetTypeId, $widgetServiceId]);
+					$factoryDef->setClass(ContainerWidgetDeclarationFactory::class, [$widgetTypeId, $widgetServiceId, $widgetDefinition['unique']]);
 					$factoryDef->setAutowired(FALSE);
 					$factoryDef->setInject(TRUE);
 					$factoryDef->addTag($this->getTagWithNamespace($namespace));
